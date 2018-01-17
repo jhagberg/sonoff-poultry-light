@@ -18,7 +18,7 @@ WiFiServer server(LISTEN_PORT);
 #define YOUR_WIFI_PASSWD "YOUR_WIFI_PASSWD"
 #endif // !WIFI_CONFIG_H
 
-
+F
 // Variables to be exposed to the API
 float temperature;
 float humidity;
@@ -34,8 +34,8 @@ void setup()
   WiFi.mode(WIFI_STA);
   WiFi.begin(YOUR_WIFI_SSID, YOUR_WIFI_PASSWD);
 
-  pinMode(ONBOARDLED, OUTPUT); // Onboard LED
-  digitalWrite(ONBOARDLED, HIGH); // Switch off LED
+ // pinMode(ONBOARDLED, OUTPUT); // Onboard LED
+ // digitalWrite(ONBOARDLED, HIGH); // Switch off LED
 
   if ( MDNS.begin ( "plight" ) ) {
     Serial.println ( "MDNS responder started" );
@@ -43,6 +43,8 @@ void setup()
  // Set the title
   rest.title("Poultry Light");
   rest.button(12);
+  rest.button(13);
+  rest.slider(6);
 
   temperature = 23.8;
   humidity = 39.1;
