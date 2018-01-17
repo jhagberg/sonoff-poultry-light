@@ -42,7 +42,7 @@ void setup()
   }
  // Set the title
   rest.title("Poultry Light");
-  rest.button(13);
+  rest.button(12);
 
   temperature = 23.8;
   humidity = 39.1;
@@ -53,6 +53,7 @@ void setup()
   rest.label("humidity");
   rest.set_id("1");
   rest.set_name("esp8266");
+  rest.function("led", ledControl);
   
   configTime(0, 0, "192.168.1.1","192.168.1.219", "0.se.pool.ntp.org");
   setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
@@ -74,6 +75,7 @@ void setup()
 void loop()
 {
     // Handle REST calls
+  checkhttpUpdate();
   WiFiClient client = server.available();
   if (!client) {
     return;
@@ -85,7 +87,16 @@ void loop()
   
 }
 
+int ledControl(String command) {
+  // Print command
+  Serial.println(command);
 
+  // Get state from command
+  int state = command.toInt();
+
+  digitalWrite(12, state);
+  return 1;
+}
 
 
 // Check for Update
