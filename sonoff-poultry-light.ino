@@ -1,19 +1,27 @@
 #include <ESP8266TimeAlarms.h>
 #include "WifiConfig.h"
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
-#include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <aREST.h>
+#include <aREST_UI.h>
 
+aREST_UI rest = aREST_UI();
 
-ESP8266WebServer server ( 80 );
+#define LISTEN_PORT           80
 
+// Create an instance of the server
+WiFiServer server(LISTEN_PORT);
 
 #ifndef WIFI_CONFIG_H
 #define YOUR_WIFI_SSID "YOUR_WIFI_SSID"
 #define YOUR_WIFI_PASSWD "YOUR_WIFI_PASSWD"
 #endif // !WIFI_CONFIG_H
+
+
+// Variables to be exposed to the API
+float temperature;
+float humidity;
 
 #define ONBOARDLED 13 // Built in LED on SonOff th10/16
 AlarmId id;
@@ -32,11 +40,20 @@ void setup()
   if ( MDNS.begin ( "plight" ) ) {
     Serial.println ( "MDNS responder started" );
   }
+ // Set the title
+  rest.title("Poultry Light");
+  rest.button(13);
 
-  server.on ( "/", handleRoot );
-  server.onNotFound ( handleNotFound );
-  server.begin();
-  Serial.println ( "HTTP server started" );
+  temperature = 23.8;
+  humidity = 39.1;
+  
+  rest.variable("temperature", &temperature);
+  rest.variable("humidity", &humidity);
+  rest.label("temperature");
+  rest.label("humidity");
+  rest.set_id("1");
+  rest.set_name("esp8266");
+  
   configTime(0, 0, "192.168.1.1","192.168.1.219", "0.se.pool.ntp.org");
   setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
   tzset();
@@ -45,18 +62,30 @@ void setup()
     delay(500);
     Serial.print(".");
   }
-  
+  // Start the server
+  server.begin();
+  Serial.println("Server started");
+
+  // Print the IP address
+  Serial.println(WiFi.localIP());
 
 }
 
 void loop()
 {
-  //checkhttpUpdate();
-  server.handleClient();
+    // Handle REST calls
+  WiFiClient client = server.available();
+  if (!client) {
+    return;
+  }
+  while (!client.available()) {
+    delay(1);
+  }
+  rest.handle(client);
   
- 
-  delay(1000);
 }
+
+
 void handleRoot() {
   char temp[400];
   int sec = millis() / 1000;
