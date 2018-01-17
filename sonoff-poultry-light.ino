@@ -18,7 +18,7 @@ WiFiServer server(LISTEN_PORT);
 #define YOUR_WIFI_PASSWD "YOUR_WIFI_PASSWD"
 #endif // !WIFI_CONFIG_H
 
-F
+
 // Variables to be exposed to the API
 float temperature;
 float humidity;
