@@ -5,6 +5,9 @@
 #include <ESP8266mDNS.h>
 #include <aREST.h>
 #include <aREST_UI.h>
+#include <Adafruit_BME280.h>
+Adafruit_BME280 bme; // I2C
+
 
 aREST_UI rest = aREST_UI();
 
@@ -22,8 +25,9 @@ WiFiServer server(LISTEN_PORT);
 // Variables to be exposed to the API
 float temperature;
 float humidity;
+int heap;
 
-#define ONBOARDLED 13 // Built in LED on SonOff th10/16
+//f#define ONBOARDLED 13 // Built in LED on SonOff th10/16
 AlarmId id;
 
 
@@ -33,6 +37,10 @@ void setup()
   Serial.println();
   WiFi.mode(WIFI_STA);
   WiFi.begin(YOUR_WIFI_SSID, YOUR_WIFI_PASSWD);
+  //SDA Grå GPIO4
+  //SCL Grön GPIO14
+  Wire.begin(4,14);
+  bme.begin(0x76);
 
  // pinMode(ONBOARDLED, OUTPUT); // Onboard LED
  // digitalWrite(ONBOARDLED, HIGH); // Switch off LED
@@ -45,13 +53,16 @@ void setup()
   rest.button(12);
   rest.button(13);
 
-  temperature = 23.8;
-  humidity = 39.1;
+  temperature = bme.readTemperature();
+  humidity = bme.readHumidity();
+  heap=ESP.getFreeHeap();
 
   rest.variable("temperature", &temperature);
   rest.variable("humidity", &humidity);
+  rest.variable("heap", &heap);
   rest.label("temperature");
   rest.label("humidity");
+  rest.label("heap");
   rest.set_id("1");
   rest.set_name("esp8266");
   rest.function("led", ledControl);
@@ -85,7 +96,9 @@ void loop()
     delay(1);
   }
   rest.handle(client);
-
+  temperature = bme.readTemperature();
+  humidity = bme.readHumidity();
+  heap=ESP.getFreeHeap();
 }
 
 int ledControl(String command) {
